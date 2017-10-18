@@ -21,7 +21,7 @@ allprojects {
 
 ```groovy
 dependencies {
-    	compile 'com.github.firdausmaulan:GlideSlider:1.0.1'
+    	compile 'com.github.firdausmaulan:GlideSlider:1.0.2'
 }
 ```
 
@@ -30,7 +30,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    	compile ('com.github.firdausmaulan:GlideSlider:1.0.1') {
+    	compile ('com.github.firdausmaulan:GlideSlider:1.0.2') {
 		exclude group: 'com.nineoldandroids', module: 'library'
 	}
 }
@@ -75,9 +75,16 @@ There are some default indicators. If you want to use a provided indicator:
         />
 ```
 
+## Example
+- [verison 1.0.0]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.0.0)
+- [verison 1.0.1]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.0.1)
+- [verison 1.0.2]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.0.2)
+
 ## Thanks
 
 - [AndroidImageSlider](https://github.com/daimajia/AndroidImageSlider)
 - [Glide](https://github.com/bumptech/glide)
 - [NineOldAndroids](https://github.com/JakeWharton/NineOldAndroids)
 - [ViewPagerTransforms](https://github.com/ToxicBakery/ViewPagerTransforms)
+
+- [Miroslav Kudrnac](https://github.com/mkudrnac)
