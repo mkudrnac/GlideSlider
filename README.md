@@ -12,27 +12,40 @@
 #### Gradle
 
 ```groovy
+buildscript {
+
+    ext.support_version = '27.1.1'
+    ext.glide_version = '4.7.1'
+    ext.glide_slider_version = '1.3.2'
+	
+	// use this config if you want to load svg
+	//ext.glide_slider_version = '1.3.1'
+	//ext.androidsvg_version = '1.2.1'
+
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.3'
+    }
+}
+
 allprojects {
-	repositories {
-		maven { url 'https://jitpack.io' }
-	}
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+        maven {
+            url "https://jitpack.io"
+        }
+    }
 }
 ```
 
 ```groovy
 dependencies {
-    	compile 'com.github.firdausmaulan:GlideSlider:1.0.2'
-}
-```
-
-- If you have problem with duplicate entry: com/nineoldandroids/animation/Animator$AnimatorListener.class
-- Just exclude nineoldandroids library
-
-```groovy
-dependencies {
-    	compile ('com.github.firdausmaulan:GlideSlider:1.0.2') {
-		exclude group: 'com.nineoldandroids', module: 'library'
-	}
+    implementation "com.github.firdausmaulan:GlideSlider:$glide_slider_version"
 }
 ```
 
@@ -60,8 +73,7 @@ Add the Slider to your layout:
 <com.glide.slider.library.SliderLayout
         android:id="@+id/slider"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-/>
+        android:layout_height="200dp"/>
 ```        
  
 There are some default indicators. If you want to use a provided indicator:
@@ -71,20 +83,20 @@ There are some default indicators. If you want to use a provided indicator:
         android:id="@+id/custom_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        />
+        android:gravity="center"/>
+```
+
+```java
+Add <color name="glide_slider_indicator_color">#yourhex</color> to change indicator color.
 ```
 
 ## Example
-- [verison 1.0.0]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.0.0)
-- [verison 1.0.1]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.0.1)
-- [verison 1.0.2]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.0.2)
+- [version 1.3.1]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.3.1)
+- [version 1.3.2]https://github.com/firdausmaulan/GlideSlider-Example/tree/feature/1.3.2)
 
 ## Thanks
 
 - [AndroidImageSlider](https://github.com/daimajia/AndroidImageSlider)
 - [Glide](https://github.com/bumptech/glide)
-- [NineOldAndroids](https://github.com/JakeWharton/NineOldAndroids)
 - [ViewPagerTransforms](https://github.com/ToxicBakery/ViewPagerTransforms)
-
-- [Miroslav Kudrnac](https://github.com/mkudrnac)
+- [androidsvg](https://code.google.com/archive/p/androidsvg/)

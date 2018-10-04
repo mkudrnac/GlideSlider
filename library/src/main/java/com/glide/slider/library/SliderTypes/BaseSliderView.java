@@ -1,14 +1,21 @@
 package com.glide.slider.library.SliderTypes;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.widget.AppCompatImageView;
 import android.view.View;
-import android.widget.ImageView;
-
+import android.widget.ProgressBar;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.glide.slider.library.R;
 
 import java.io.File;
@@ -18,77 +25,36 @@ import java.io.File;
  * BaseSliderView provides some useful methods.
  * I provide two example: {@link com.glide.slider.library.SliderTypes.DefaultSliderView} and
  * {@link com.glide.slider.library.SliderTypes.TextSliderView}
- * if you want to show progressbar, you just need to set a progressbar id as @+id/loading_bar.
  */
 public abstract class BaseSliderView {
 
-    protected Context mContext;
+    public Context mContext;
 
     private Bundle mBundle;
-
-    /**
-     * Error place holder image.
-     */
-    private int mErrorPlaceHolderRes;
-
-    /**
-     * Empty imageView placeholder.
-     */
-    private int mEmptyPlaceHolderRes;
 
     private String mUrl;
     private File mFile;
     private int mRes;
 
-    protected OnSliderClickListener mOnSliderClickListener;
+    public OnSliderClickListener mOnSliderClickListener;
 
-    private boolean mErrorDisappear;
-
-    private ImageLoadListener mLoadListener;
+    public ImageLoadListener mLoadListener;
 
     private String mDescription;
 
-    private BitmapTransformation mBitmapTransformation;
+    private RequestOptions mRequestOptions;
+
+    private boolean isProgressBarVisible = false;
+
+    private int mBackgroundColor = Color.BLACK;
 
     /**
      * Ctor
+     *
      * @param context
      */
-    protected BaseSliderView(Context context) {
+    public BaseSliderView(Context context) {
         mContext = context;
-    }
-
-    /**
-     * the placeholder image when loading image from url or file.
-     *
-     * @param resId Image resource id
-     * @return
-     */
-    public BaseSliderView empty(int resId) {
-        mEmptyPlaceHolderRes = resId;
-        return this;
-    }
-
-    /**
-     * determine whether remove the image which failed to download or load from file
-     *
-     * @param disappear
-     * @return
-     */
-    public BaseSliderView errorDisappear(boolean disappear) {
-        mErrorDisappear = disappear;
-        return this;
-    }
-
-    /**
-     * if you set errorDisappear false, this will set a error placeholder image.
-     *
-     * @param resId image resource id
-     * @return
-     */
-    public BaseSliderView error(int resId) {
-        mErrorPlaceHolderRes = resId;
-        return this;
     }
 
     /**
@@ -156,18 +122,6 @@ public abstract class BaseSliderView {
         return mUrl;
     }
 
-    public boolean isErrorDisappear() {
-        return mErrorDisappear;
-    }
-
-    public int getEmpty() {
-        return mEmptyPlaceHolderRes;
-    }
-
-    public int getError() {
-        return mErrorPlaceHolderRes;
-    }
-
     public String getDescription() {
         return mDescription;
     }
@@ -188,12 +142,33 @@ public abstract class BaseSliderView {
     }
 
     /**
-     * set Glide BitmapTransformation
-     * @param bitmapTransformation transformation to perform
+     * set Glide RequestOption
+     *
+     * @param requestOption
      * @return self
      */
-    public BaseSliderView setBitmapTransformation(BitmapTransformation bitmapTransformation) {
-        mBitmapTransformation = bitmapTransformation;
+    public BaseSliderView setRequestOption(RequestOptions requestOption) {
+        mRequestOptions = requestOption;
+        return this;
+    }
+
+    /**
+     * set Progressbar visible or gone
+     *
+     * @param isVisible
+     */
+    public BaseSliderView setProgressBarVisible(boolean isVisible) {
+        isProgressBarVisible = isVisible;
+        return this;
+    }
+
+    /**
+     * set Background Color
+     *
+     * @param color
+     */
+    public BaseSliderView setBackgroundColor(int color) {
+        mBackgroundColor = color;
         return this;
     }
 
@@ -203,8 +178,14 @@ public abstract class BaseSliderView {
      * @param v               the whole view
      * @param targetImageView where to place image
      */
-    protected void bindEventAndShow(final View v, ImageView targetImageView) {
+    protected void bindEventAndShow(final View v, AppCompatImageView targetImageView) {
         final BaseSliderView me = this;
+
+        try {
+            v.findViewById(R.id.glide_slider_background).setBackgroundColor(mBackgroundColor);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
 
         v.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -222,71 +203,70 @@ public abstract class BaseSliderView {
             mLoadListener.onStart(me);
         }
 
-        v.findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
-
-        if (mBitmapTransformation != null) {
-            if (mUrl != null) {
-                if (getEmpty() != 0 && getError() != 0) {
-                    Glide.with(mContext).load(mUrl).apply(RequestOptions.bitmapTransform(mBitmapTransformation).placeholder(getEmpty()).error(getError())).into(targetImageView);
-                } else if (getEmpty() != 0) {
-                    Glide.with(mContext).load(mUrl).apply(RequestOptions.bitmapTransform(mBitmapTransformation).placeholder(getEmpty())).into(targetImageView);
-                } else if (getError() != 0) {
-                    Glide.with(mContext).load(mUrl).apply(RequestOptions.bitmapTransform(mBitmapTransformation).error(getError())).into(targetImageView);
-                } else {
-                    Glide.with(mContext).load(mUrl).apply(RequestOptions.bitmapTransform(mBitmapTransformation)).into(targetImageView);
-                }
-            } else if (mFile != null) {
-                if (getEmpty() != 0 && getError() != 0) {
-                    Glide.with(mContext).load(mFile).apply(RequestOptions.bitmapTransform(mBitmapTransformation).placeholder(getEmpty()).error(getError())).into(targetImageView);
-                } else if (getEmpty() != 0) {
-                    Glide.with(mContext).load(mFile).apply(RequestOptions.bitmapTransform(mBitmapTransformation).placeholder(getEmpty())).into(targetImageView);
-                } else if (getError() != 0) {
-                    Glide.with(mContext).load(mFile).apply(RequestOptions.bitmapTransform(mBitmapTransformation).error(getError())).into(targetImageView);
-                } else {
-                    Glide.with(mContext).load(mFile).apply(RequestOptions.bitmapTransform(mBitmapTransformation)).into(targetImageView);
-                }
-            } else if (mRes != 0) {
-                if (getEmpty() != 0 && getError() != 0) {
-                    Glide.with(mContext).load(mRes).apply(RequestOptions.bitmapTransform(mBitmapTransformation).placeholder(getEmpty()).error(getError())).into(targetImageView);
-                } else if (getEmpty() != 0) {
-                    Glide.with(mContext).load(mRes).apply(RequestOptions.bitmapTransform(mBitmapTransformation).placeholder(getEmpty())).into(targetImageView);
-                } else if (getError() != 0) {
-                    Glide.with(mContext).load(mRes).apply(RequestOptions.bitmapTransform(mBitmapTransformation).error(getError())).into(targetImageView);
-                } else {
-                    Glide.with(mContext).load(mRes).apply(RequestOptions.bitmapTransform(mBitmapTransformation)).into(targetImageView);
-                }
-            }
+        final ProgressBar mProgressBar = v.findViewById(R.id.loading_bar);
+        if (isProgressBarVisible) {
+            mProgressBar.setVisibility(View.VISIBLE);
         } else {
-            if (mUrl != null) {
-                if (getEmpty() != 0 && getError() != 0) {
-                    Glide.with(mContext).load(mUrl).apply(new RequestOptions().placeholder(getEmpty()).error(getError())).into(targetImageView);
-                } else if (getEmpty() != 0) {
-                    Glide.with(mContext).load(mUrl).apply(new RequestOptions().placeholder(getEmpty())).into(targetImageView);
-                } else if (getError() != 0) {
-                    Glide.with(mContext).load(mUrl).apply(new RequestOptions().error(getError())).into(targetImageView);
-                } else {
-                    Glide.with(mContext).load(mUrl).into(targetImageView);
-                }
-            } else if (mFile != null) {
-                if (getEmpty() != 0 && getError() != 0) {
-                    Glide.with(mContext).load(mFile).apply(new RequestOptions().placeholder(getEmpty()).error(getError())).into(targetImageView);
-                } else if (getEmpty() != 0) {
-                    Glide.with(mContext).load(mFile).apply(new RequestOptions().placeholder(getEmpty())).into(targetImageView);
-                } else if (getError() != 0) {
-                    Glide.with(mContext).load(mFile).apply(new RequestOptions().error(getError())).into(targetImageView);
-                } else {
-                    Glide.with(mContext).load(mFile).into(targetImageView);
-                }
-            } else if (mRes != 0) {
-                if (getEmpty() != 0 && getError() != 0) {
-                    Glide.with(mContext).load(mRes).apply(new RequestOptions().placeholder(getEmpty()).error(getError())).into(targetImageView);
-                } else if (getEmpty() != 0) {
-                    Glide.with(mContext).load(mRes).apply(new RequestOptions().placeholder(getEmpty())).into(targetImageView);
-                } else if (getError() != 0) {
-                    Glide.with(mContext).load(mRes).apply(new RequestOptions().error(getError())).into(targetImageView);
-                } else {
-                    Glide.with(mContext).load(mRes).into(targetImageView);
-                }
+            mProgressBar.setVisibility(View.GONE);
+        }
+
+        Object imageToLoad = null;
+        if (mUrl != null) {
+            imageToLoad = mUrl;
+        } else if (mFile != null) {
+            imageToLoad = mFile;
+        } else if (mRes != 0) {
+            imageToLoad = mRes;
+        }
+
+        RequestBuilder<Drawable> requestBuilder = Glide.with(mContext).as(Drawable.class);
+
+        if (imageToLoad != null) {
+            if (mRequestOptions != null) {
+                requestBuilder.load(imageToLoad)
+                        .apply(mRequestOptions)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e,
+                                                        Object model,
+                                                        Target<Drawable> target,
+                                                        boolean isFirstResource) {
+                                mProgressBar.setVisibility(View.GONE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource,
+                                                           Object model,
+                                                           Target<Drawable> target,
+                                                           DataSource dataSource,
+                                                           boolean isFirstResource) {
+                                mProgressBar.setVisibility(View.GONE);
+                                return false;
+                            }
+                        }).into(targetImageView);
+            } else {
+                requestBuilder.load(imageToLoad)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e,
+                                                        Object model,
+                                                        Target<Drawable> target,
+                                                        boolean isFirstResource) {
+                                mProgressBar.setVisibility(View.GONE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource,
+                                                           Object model,
+                                                           Target<Drawable> target,
+                                                           DataSource dataSource,
+                                                           boolean isFirstResource) {
+                                mProgressBar.setVisibility(View.GONE);
+                                return false;
+                            }
+                        }).into(targetImageView);
             }
         }
     }
